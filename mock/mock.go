@@ -659,14 +659,14 @@ func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: t}
 }
 
-// argumentMatcher performs custom argument matching, returning whether or
+// ArgumentMatcher performs custom argument matching, returning whether or
 // not the argument is matched by the expectation fixture function.
-type argumentMatcher struct {
+type ArgumentMatcher struct {
 	// fn is a function which accepts one argument, and returns a bool.
 	fn reflect.Value
 }
 
-func (f argumentMatcher) Matches(argument interface{}) bool {
+func (f ArgumentMatcher) Matches(argument interface{}) bool {
 	expectType := f.fn.Type().In(0)
 	expectTypeNilSupported := false
 	switch expectType.Kind() {
@@ -692,7 +692,7 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 	return false
 }
 
-func (f argumentMatcher) String() string {
+func (f ArgumentMatcher) String() string {
 	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
 }
 
@@ -707,7 +707,7 @@ func (f argumentMatcher) String() string {
 // |fn|, must be a function accepting a single argument (of the expected type)
 // which returns a bool. If |fn| doesn't match the required signature,
 // MatchedBy() panics.
-func MatchedBy(fn interface{}) argumentMatcher {
+func MatchedBy(fn interface{}) ArgumentMatcher {
 	fnType := reflect.TypeOf(fn)
 
 	if fnType.Kind() != reflect.Func {
@@ -720,7 +720,7 @@ func MatchedBy(fn interface{}) argumentMatcher {
 		panic(fmt.Sprintf("assert: arguments: %s does not return a bool", fn))
 	}
 
-	return argumentMatcher{fn: reflect.ValueOf(fn)}
+	return ArgumentMatcher{fn: reflect.ValueOf(fn)}
 }
 
 // Get Returns the argument at the specified index.
@@ -776,7 +776,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
 		}
 
-		if matcher, ok := expected.(argumentMatcher); ok {
+		if matcher, ok := expected.(ArgumentMatcher); ok {
 			if matcher.Matches(actual) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
